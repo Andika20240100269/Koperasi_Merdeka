@@ -1,6 +1,16 @@
-# Sistem Informasi Koperasi Simpan Pinjam (Si-KSP)
+# Sistem Informasi Koperasi Simpan Pinjam (Si-KSP) - Koperasi Merdeka
 
-Aplikasi manajemen Koperasi Simpan Pinjam berbasis web sederhana yang dikembangkan dengan menggunakan **PHP Native** dan database **MySQL/MariaDB**. Sistem ini memiliki dua peran utama, yaitu **Admin** (Pengelola Koperasi) dan **Anggota** (Nasabah Koperasi).
+Aplikasi manajemen Koperasi Simpan Pinjam berbasis web yang dikembangkan menggunakan **PHP Native** dan database **MySQL/MariaDB**. Aplikasi ini dirancang untuk mendigitalisasi operasional koperasi, mencakup pencatatan anggota, pengelolaan simpanan, serta pengajuan dan pelunasan pinjaman secara sistematis.
+
+---
+
+## 📌 Latar Belakang Masalah
+Koperasi Simpan Pinjam (KSP) konvensional sering menghadapi kendala operasional akibat pencatatan data transaksi yang masih manual (menggunakan buku besar kertas atau file spreadsheet terpisah). Beberapa masalah utama yang sering muncul meliputi:
+1. **Ketidakakuratan Perhitungan**: Risiko tinggi terjadinya kesalahan manusia (*human error*) dalam menghitung bunga pinjaman, total akumulasi simpanan wajib, atau sisa saldo tagihan anggota.
+2. **Keterbatasan Akses Anggota**: Anggota koperasi tidak dapat memantau status simpanan atau sisa pinjaman mereka secara langsung tanpa mendatangi kantor atau menghubungi pengelola secara manual.
+3. **Penyusunan Laporan yang Lambat**: Pembuatan rekapitulasi data anggota dan laporan keuangan bulanan/tahunan membutuhkan waktu lama karena data harus dicari dan dihitung secara manual satu per satu.
+
+**Solusi Proyek**: Aplikasi **Si-KSP** ini mengotomatisasi perhitungan keuangan (simpanan, bunga pinjaman, sisa tagihan angsuran) serta menyediakan portal mandiri bagi **Anggota** untuk masuk dan memantau akun keuangan mereka secara real-time, sekaligus mempermudah **Admin** dalam mengelola data anggota, transaksi, dan mencetak laporan secara instan.
 
 ---
 
@@ -30,10 +40,107 @@ Aplikasi manajemen Koperasi Simpan Pinjam berbasis web sederhana yang dikembangk
   * Halaman ringkasan profil nasabah.
   * Informasi total simpanan pribadi.
   * Informasi pinjaman aktif serta sisa tagihan/angsuran yang harus dibayarkan.
-* **Riwayat Simpanan**:
-  * Melihat daftar lengkap riwayat simpanan yang pernah disetor.
-* **Riwayat Pinjaman**:
-  * Melihat daftar riwayat pinjaman beserta status pelunasannya.
+* **Riwayat Simpanan & Pinjaman**:
+  * Melihat daftar lengkap transaksi simpanan dan pinjaman pribadi secara transparan.
+
+---
+
+## 📐 Rancangan Database (Database Design)
+Database bernama `db_koperasi` terdiri atas 6 tabel utama yang terintegrasi dengan struktur berikut:
+
+### 1. Struktur Tabel
+* **`user`** (Penyimpanan akun login Administrator/Pengelola Koperasi):
+  * `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+  * `username` (VARCHAR)
+  * `password` (VARCHAR, Hashed)
+* **`anggota`** (Penyimpanan data profil anggota koperasi):
+  * `id_anggota` (INT, AUTO_INCREMENT, PRIMARY KEY)
+  * `no_anggota` (VARCHAR, UNIQUE)
+  * `nama` (VARCHAR)
+  * `alamat` (TEXT)
+  * `no_hp` (VARCHAR)
+  * `pekerjaan` (VARCHAR)
+  * `tanggal_daftar` (DATE)
+  * `status_anggota` (VARCHAR)
+  * `foto` (VARCHAR, Nama berkas gambar profil)
+* **`user_anggota`** (Penyimpanan kredensial login untuk portal Anggota):
+  * `no_anggota` (VARCHAR, PRIMARY KEY, FOREIGN KEY ke `anggota.no_anggota`)
+  * `password` (VARCHAR, Hashed)
+* **`simpanan`** (Catatan transaksi simpanan anggota):
+  * `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+  * `no_anggota` (VARCHAR, FOREIGN KEY)
+  * `jenis_simpanan` (VARCHAR, e.g. Pokok, Wajib, Sukarela)
+  * `jumlah` (INT, Nominal transaksi)
+  * `tanggal` (DATE)
+* **`pinjaman`** (Catatan pengajuan dan saldo pinjaman aktif):
+  * `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+  * `no_anggota` (VARCHAR, FOREIGN KEY)
+  * `jumlah_pinjaman` (INT, Pokok pinjaman)
+  * `lama_angsuran` (INT, Tenor bulan)
+  * `bunga` (FLOAT, Persentase bunga)
+  * `tanggal_pinjaman` (DATE)
+  * `status` (VARCHAR, 'Belum Lunas' / 'Lunas')
+* **`angsuran`** (Catatan cicilan pengembalian dana):
+  * `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+  * `id_pinjaman` (INT, FOREIGN KEY ke `pinjaman.id`)
+  * `tanggal_bayar` (DATE)
+  * `jumlah_bayar` (INT, Nominal bayar)
+
+### 2. Hubungan Relasi (Kardinalitas)
+* **`anggota` (1) ─── (1) `user_anggota`**: Relasi *one-to-one*. Setiap anggota terdaftar mempunyai tepat satu baris data login.
+* **`anggota` (1) ─── (N) `simpanan`**: Relasi *one-to-many*. Anggota koperasi dapat menyetorkan simpanan berkali-kali.
+* **`anggota` (1) ─── (N) `pinjaman`**: Relasi *one-to-many*. Anggota diperbolehkan mengajukan pinjaman beberapa kali seiring waktu.
+* **`pinjaman` (1) ─── (N) `angsuran`**: Relasi *one-to-many*. Satu data transaksi pinjaman dilunasi melalui beberapa cicilan transaksi angsuran.
+
+---
+
+## 🌀 Alur Sistem (DFD Level 0 / Diagram Konteks)
+Sistem memproses interaksi aliran data dari dua entitas utama sebagai berikut:
+1. **Entitas Admin**:
+   * **Input ke Sistem**: Menginput data anggota baru, meregistrasi transaksi simpanan baru, menginput data pinjaman baru, serta memperbarui setoran angsuran anggota.
+   * **Output dari Sistem**: Menerima laporan rekap data anggota, rekap total dana simpanan masuk, rekap total pinjaman keluar, serta detail status pembayaran angsuran.
+2. **Entitas Anggota**:
+   * **Input ke Sistem**: Memasukkan nomor anggota dan password untuk login ke portal anggota.
+   * **Output dari Sistem**: Menerima informasi profil pribadi, akumulasi total saldo simpanan miliknya, status pinjaman aktif, serta rincian sisa tagihan bulanan yang harus dibayarkan.
+
+---
+
+## 💻 Implementasi Kode Pemrograman Utama
+Logika perhitungan sisa kewajiban pinjaman anggota diimplementasikan melalui fungsi **`sisaPinjaman()`** pada berkas [functions.php](file:///C:/xampp/htdocs/db_koperasi/functions.php):
+
+```php
+function sisaPinjaman($id_pinjaman)
+{
+    $pinjaman = query("
+        SELECT jumlah_pinjaman, bunga, lama_angsuran
+        FROM pinjaman
+        WHERE id = '$id_pinjaman'
+    ");
+
+    if (empty($pinjaman)) {
+        return 0;
+    }
+
+    $jumlahPinjaman = $pinjaman[0]['jumlah_pinjaman'];
+    $bunga = $pinjaman[0]['bunga'];
+    $lama = $pinjaman[0]['lama_angsuran'];
+
+    // Hitung total pinjaman + bunga
+    $totalPinjaman = $jumlahPinjaman + (($jumlahPinjaman * $bunga / 100) * $lama);
+
+    $angsuran = query("
+        SELECT SUM(jumlah_bayar) AS total
+        FROM angsuran
+        WHERE id_pinjaman = '$id_pinjaman'
+    ");
+
+    $totalBayar = $angsuran[0]['total'] ?? 0;
+
+    return $totalPinjaman - $totalBayar;
+}
+```
+
+* **Cara Kerja**: Fungsi mengambil rincian pinjaman berdasarkan ID pinjaman, menghitung total pinjaman (pokok + bunga akumulasi masa angsuran), menjumlahkan total angsuran yang telah dibayarkan oleh anggota via query agregat `SUM(jumlah_bayar)`, lalu mengembalikan nilai sisa kewajiban anggota yang belum terbayar.
 
 ---
 
@@ -42,7 +149,7 @@ Aplikasi manajemen Koperasi Simpan Pinjam berbasis web sederhana yang dikembangk
 * **Database**: MySQL / MariaDB
 * **Web Server**: Apache (melalui bundel XAMPP/Laragon)
 * **Styling**: Vanilla CSS (CSS Kustom)
-* **Scripting Tambahan**: JavaScript (untuk AJAX pencarian dinamis & fungsi cetak)
+* **Scripting**: JavaScript (AJAX pencarian dinamis & browser print)
 
 ---
 
