@@ -238,9 +238,9 @@ Gunakan akun berikut untuk masuk ke sistem:
 
 ### A. Akun Administrator (Akses Penuh Pengelola)
 
-| Username    | Password | Keterangan                                 |
-| :---------- | :------- | :----------------------------------------- |
-| **`admin`** | `admin`  | Hak akses penuh sebagai pengelola koperasi |
+| Username    | Password   | Keterangan                                 |
+| :---------- | :--------- | :----------------------------------------- |
+| **`admin`** | `admin123` | Hak akses penuh sebagai pengelola koperasi |
 
 ### B. Akun Anggota (Akses Nasabah Koperasi)
 
