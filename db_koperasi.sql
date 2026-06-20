@@ -33,12 +33,11 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `user` (Password: 12345)
+-- Dumping data for table `user`
 --
 
 INSERT INTO `user` (`id`, `username`, `password`) VALUES
-(3, 'agung', '$2y$10$GHc7rNilT.K6vVWbp7m9Ae/2P2lDgrk90vPqvYDrjf82JPS0R28YC'),
-(4, 'latifah', '$2y$10$liLiT81A5Qaz6FHhFtEIWOqJi7eBB6SC8tg66NP0c/GJEomoHAZ4i');
+(1, 'admin', '$2y$10$OzlZq0H1Nnkn0yS88kF5nuMA1zOCE4QnKhjtMe/a8vk5n44syXlUS');
 
 -- --------------------------------------------------------
 
