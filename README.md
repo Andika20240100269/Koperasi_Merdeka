@@ -246,7 +246,8 @@ Gunakan akun berikut untuk masuk ke sistem:
 
 | No. Anggota   | Password | Keterangan                                |
 | :------------ | :------- | :---------------------------------------- |
-| **`AGT0001`** | `12345`  | Akun anggota demo bawaan (Andika Pratama) |
+| **`AGT0001`** | `12345`  | Akun anggota demo bawaan (Andika Saputra) |
+| **`AGT0002`** | `12345`  | Akun anggota demo bawaan (Agung ) |
 
 > 📌 **Catatan Keamanan**:
 > Untuk mengganti password bawaan, Anda dapat menggunakan utilitas [buat_hash.php](file:///C:/xampp/htdocs/db_koperasi/buat_hash.php) untuk mencetak string hash baru kemudian mengupdatenya langsung di tabel database (`user` atau `user_anggota`).
